@@ -31,13 +31,13 @@ elif [[ ${TRAVIS_OS_NAME} == "osx" ]]; then
     # build OS X
     #
     mapbox_time "create_osx_project" \
-    make xproj-cli
+    make build/macosx/mapboxgl-app.xcodeproj
 
     mapbox_time "build_osx" \
     xcodebuild -project ./build/macosx/mapboxgl-app.xcodeproj -jobs 4
 
     mapbox_time "build_xtest" \
-    make xtest-cli \
+    make build/test/test.xcodeproj
     xcodebuild -project ./build/test/test.xcodeproj/ -jobs 4 -target test
 
     #
@@ -49,7 +49,7 @@ elif [[ ${TRAVIS_OS_NAME} == "osx" ]]; then
     git submodule update
 
     mapbox_time "create_ios_project" \
-    make iproj-cli
+    make build/ios/mapbox-gl-cocoa/app/mapboxgl-app.xcodeproj
 
     mapbox_time "build_ios" \
     xcodebuild -project ./build/ios/mapbox-gl-cocoa/app/mapboxgl-app.xcodeproj -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO -jobs 4
