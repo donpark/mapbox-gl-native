@@ -36,6 +36,10 @@ elif [[ ${TRAVIS_OS_NAME} == "osx" ]]; then
     mapbox_time "build_osx" \
     xcodebuild -project ./build/macosx/mapboxgl-app.xcodeproj -jobs 4
 
+    mapbox_time "build_xtest" \
+    make xtest-cli \
+    xcodebuild -project ./build/test/test.xcodeproj/ -jobs 4 -target test
+
     #
     # build iOS
     #

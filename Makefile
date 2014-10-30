@@ -47,8 +47,10 @@ test_%: build/test/Makefile
 	(cd build/$(BUILDTYPE) && exec ./test_$*)
 
 # build Mac OS X project for Xcode
-xtest: config.gypi clear_xcode_cache
+xtest-cli: config.gypi clear_xcode_cache
 	deps/run_gyp test/test.gyp -Iconfig.gypi -Dplatform=osx --depth=. -Goutput_dir=.. --generator-output=./build -f xcode
+
+xtest: xtest-cli
 	open ./build/test/test.xcodeproj
 
 ##### Makefile builds ##########################################################
