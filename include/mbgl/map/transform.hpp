@@ -90,7 +90,7 @@ private:
 
     // Limit the amount of zooming possible on the map.
     const double min_scale = std::pow(2, 0);
-    const double max_scale = std::pow(2, 18);
+    const double max_scale = std::pow(2, 23);
 
     // cache values for spherical mercator math
     double Bc, Cc;
