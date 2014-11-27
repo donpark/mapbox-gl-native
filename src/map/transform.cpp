@@ -132,7 +132,7 @@ void Transform::startPanning() {
     // Add a 200ms timeout for resetting this to false
     current.panning = true;
     timestamp start = util::now();
-    pan_timeout = std::make_shared<util::timeout<bool>>(false, current.panning, start, 200_milliseconds);
+    pan_timeout = std::make_shared<util::timeout<bool>>(false, current.panning, start, 0);
     transitions.emplace_front(pan_timeout);
 }
 
@@ -199,7 +199,7 @@ void Transform::startScaling() {
     // Add a 200ms timeout for resetting this to false
     current.scaling = true;
     timestamp start = util::now();
-    scale_timeout = std::make_shared<util::timeout<bool>>(false, current.scaling, start, 200_milliseconds);
+    scale_timeout = std::make_shared<util::timeout<bool>>(false, current.scaling, start, 0);
     transitions.emplace_front(scale_timeout);
 }
 
@@ -415,7 +415,7 @@ void Transform::startRotating() {
     // Add a 200ms timeout for resetting this to false
     current.rotating = true;
     timestamp start = util::now();
-    rotate_timeout = std::make_shared<util::timeout<bool>>(false, current.rotating, start, 200_milliseconds);
+    rotate_timeout = std::make_shared<util::timeout<bool>>(false, current.rotating, start, 0);
     transitions.emplace_front(rotate_timeout);
 }
 
