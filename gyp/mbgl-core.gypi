@@ -7,6 +7,7 @@
       'hard_dependency': 1,
       'dependencies': [
           'shaders',
+          'version',
       ],
       'variables': {
         'cflags_cc': [
@@ -21,7 +22,6 @@
       },
       'sources': [
         '<!@(find src -name "*.cpp")',
-        '<!@(test -f "config/constants_local.cpp" && echo "config/constants_local.cpp" || echo "config/constants.cpp")',
         '<!@(find src -name "*.c")',
         '<!@(find src -name "*.h")',
         '<!@(find include -name "*.hpp")',
@@ -31,6 +31,7 @@
       ],
       'include_dirs': [
         '../include',
+        '../src',
       ],
       'conditions': [
         ['OS == "mac"', {

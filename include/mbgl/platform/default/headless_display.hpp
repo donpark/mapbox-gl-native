@@ -1,7 +1,7 @@
 #ifndef MBGL_COMMON_HEADLESS_DISPLAY
 #define MBGL_COMMON_HEADLESS_DISPLAY
 
-#include "headless_view.hpp"
+#include <mbgl/platform/default/headless_view.hpp>
 
 namespace mbgl {
 
@@ -15,8 +15,8 @@ public:
 #endif
 
 #if MBGL_USE_GLX
-    Display *x_display = nullptr;
-    GLXFBConfig *fb_configs = nullptr;
+    Display *xDisplay = nullptr;
+    GLXFBConfig *fbConfigs = nullptr;
 #endif
 };
 

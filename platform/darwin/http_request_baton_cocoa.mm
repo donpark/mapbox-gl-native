@@ -2,6 +2,7 @@
 #include <mbgl/util/std.hpp>
 #include <mbgl/util/parsedate.h>
 #include <mbgl/util/time.hpp>
+#include <mbgl/util/version.hpp>
 
 #include <uv.h>
 
@@ -14,8 +15,10 @@ namespace mbgl {
 dispatch_once_t request_initialize = 0;
 NSURLSession *session = nullptr;
 
+NSString *userAgent = nil;
+
 void HTTPRequestBaton::start(const util::ptr<HTTPRequestBaton> &ptr) {
-    assert(uv_thread_self() == ptr->thread_id);
+    assert(std::this_thread::get_id() == ptr->thread_id);
 
     // Starts the request.
     util::ptr<HTTPRequestBaton> baton = ptr;
@@ -28,6 +31,14 @@ void HTTPRequestBaton::start(const util::ptr<HTTPRequestBaton> &ptr) {
         sessionConfig.URLCache = nil;
 
         session = [NSURLSession sessionWithConfiguration:sessionConfig];
+
+        // Write user agent string
+        NSDictionary *systemVersion = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+        userAgent = [NSString stringWithFormat:@"MapboxGL/%d.%d.%d (+https://mapbox.com/mapbox-gl/; %s; %@ %@)",
+            version::major, version::minor, version::patch, version::revision,
+            [systemVersion objectForKey:@"ProductName"],
+            [systemVersion objectForKey:@"ProductVersion"]
+        ];
     });
 
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:@(baton->path.c_str())]];
@@ -40,6 +51,8 @@ void HTTPRequestBaton::start(const util::ptr<HTTPRequestBaton> &ptr) {
         }
     }
 
+    [request addValue:userAgent forHTTPHeaderField:@"User-Agent"];
+
     NSURLSessionDataTask *task = [session dataTaskWithRequest:request
                                             completionHandler:^(NSData *data, NSURLResponse *res, NSError *error) {
         if (error) {
@@ -51,7 +64,7 @@ void HTTPRequestBaton::start(const util::ptr<HTTPRequestBaton> &ptr) {
             } else {
                 // TODO: Use different codes for host not found, timeout, invalid URL etc.
                 // These can be categorized in temporary and permanent errors.
-                baton->response = std::make_unique<Response>();
+                baton->response = util::make_unique<Response>();
                 baton->response->code = [(NSHTTPURLResponse *)res statusCode];
                 baton->response->message = [[error localizedDescription] UTF8String];
 
@@ -86,7 +99,7 @@ void HTTPRequestBaton::start(const util::ptr<HTTPRequestBaton> &ptr) {
                 // Assume a Response object already exists.
                 assert(baton->response);
             } else {
-                baton->response = std::make_unique<Response>();
+                baton->response = util::make_unique<Response>();
                 baton->response->code = code;
                 baton->response->data = {(const char *)[data bytes], [data length]};
             }
@@ -117,7 +130,7 @@ void HTTPRequestBaton::start(const util::ptr<HTTPRequestBaton> &ptr) {
         } else {
             // This should never happen.
             baton->type = HTTPResponseType::PermanentError;
-            baton->response = std::make_unique<Response>();
+            baton->response = util::make_unique<Response>();
             baton->response->code = -1;
             baton->response->message = "response class is not NSHTTPURLResponse";
         }
@@ -131,7 +144,7 @@ void HTTPRequestBaton::start(const util::ptr<HTTPRequestBaton> &ptr) {
 }
 
 void HTTPRequestBaton::stop(const util::ptr<HTTPRequestBaton> &ptr) {
-    assert(uv_thread_self() == ptr->thread_id);
+    assert(std::this_thread::get_id() == ptr->thread_id);
     assert(ptr->ptr);
 
     NSURLSessionDataTask *task = CFBridgingRelease(ptr->ptr);

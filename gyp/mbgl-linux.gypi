@@ -5,10 +5,13 @@
       'type': 'static_library',
       'standalone_static_library': 1,
       'hard_dependency': 1,
+      'dependencies': [
+        'version',
+      ],
       'variables': {
         'cflags_cc': [
           '<@(png_cflags)',
-	  '<@(jpeg_cflags)',
+          '<@(jpeg_cflags)',
           '<@(uv_cflags)',
           '<@(curl_cflags)',
           '<@(nu_cflags)',
@@ -28,9 +31,12 @@
       },
       'sources': [
         '../platform/default/cache_database_tmp.cpp',
+        '../platform/default/shader_cache_tmp.cpp',
         '../platform/default/log_stderr.cpp',
         '../platform/default/string_stdlib.cpp',
+        '../platform/default/asset_request_libuv.cpp',
         '../platform/default/http_request_baton_curl.cpp',
+        '../platform/default/application_root.cpp',
         '../platform/default/image.cpp',
         '../platform/default/image_reader.cpp',
         '../platform/default/png_reader.cpp',
@@ -38,6 +44,7 @@
       ],
       'include_dirs': [
         '../include',
+        '../src',
       ],
       'link_settings': {
         'libraries': [

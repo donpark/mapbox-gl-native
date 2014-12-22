@@ -1,6 +1,7 @@
 {
   'includes': [
     '../gyp/common.gypi',
+    '../gyp/version.gypi',
     '../gyp/mbgl-platform.gypi',
   ],
   'variables' : {
@@ -23,6 +24,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone',
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)' ] }
         }, {
@@ -41,6 +43,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone',
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)'] }
         }, {
@@ -59,6 +62,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone',
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)'] }
         }, {
@@ -79,6 +83,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone'
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)' ] }
         }, {
@@ -97,6 +102,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone',
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)' ] }
         }, {
@@ -115,6 +121,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone',
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)' ] }
         }, {
@@ -133,6 +140,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone',
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)' ] }
         }, {
@@ -151,6 +159,7 @@
         '../deps/gtest/gtest.gyp:gtest',
         '../mapboxgl.gyp:mbgl-standalone',
       ],
+      'include_dirs': [ '../src' ],
       'conditions': [
         ['OS == "mac"', { 'xcode_settings': { 'OTHER_LDFLAGS': [ '<@(ldflags)' ] }
         }, {
@@ -184,7 +193,8 @@
         '../mapboxgl.gyp:mbgl-standalone',
         '../mapboxgl.gyp:mbgl-headless',
         '<(platform_library)',
-      ]
+      ],
+      'include_dirs': [ '../src' ]
     },
     { 'target_name': 'text_conversions',
       'product_name': 'test_text_conversions',
@@ -198,6 +208,7 @@
         '../mapboxgl.gyp:mbgl-standalone',
         '<(platform_library)',
       ],
+      'include_dirs': [ '../src' ],
       'variables': {
         'cflags_cc': [
           '-I<(boost_root)/include',

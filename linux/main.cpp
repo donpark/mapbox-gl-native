@@ -4,6 +4,7 @@
 #include <mbgl/platform/default/settings_json.hpp>
 #include <mbgl/platform/default/glfw_view.hpp>
 #include <mbgl/platform/default/log_stderr.hpp>
+#include <mbgl/storage/caching_http_file_source.hpp>
 
 #include <signal.h>
 #include <getopt.h>
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]) {
             // handle fullscreen_flag
             break;
         case 's':
-            style = std::string("file://") + std::string(optarg);
+            style = std::string("asset://") + std::string(optarg);
         default:
             break;
         }
@@ -63,7 +64,8 @@ int main(int argc, char *argv[]) {
     sigaction(SIGINT, &sigIntHandler, NULL);
 
     view = new GLFWView();
-    mbgl::Map map(*view);
+    mbgl::CachingHTTPFileSource fileSource(mbgl::platform::defaultCacheDatabase());
+    mbgl::Map map(*view, fileSource);
 
     // Load settings
     mbgl::Settings_JSON settings;
@@ -76,12 +78,12 @@ int main(int argc, char *argv[]) {
     if (token == nullptr) {
         mbgl::Log::Warning(mbgl::Event::Setup, "no access token set. mapbox.com tiles won't work.");
     } else {
-        map.setAccessToken(std::string(token));
+        fileSource.setAccessToken(std::string(token));
     }
 
     // Load style
     if (style.empty())
-        style = std::string("file://") + uv::cwd() + std::string("/../../styles/styles/bright-v6.json");
+        style = std::string("asset://") + std::string("styles/bright-v6.json");
 
     map.setStyleURL(style);
 

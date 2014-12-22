@@ -1,7 +1,6 @@
 #include <mbgl/platform/default/glfw_view.hpp>
 #include <mbgl/platform/gl.hpp>
-
-#include <mbgl/util/string.hpp>
+#include <mbgl/platform/log.hpp>
 
 GLFWView::GLFWView(bool fullscreen_) : fullscreen(fullscreen_) {
 #ifdef NVIDIA
@@ -10,12 +9,18 @@ GLFWView::GLFWView(bool fullscreen_) : fullscreen(fullscreen_) {
 }
 
 GLFWView::~GLFWView() {
-    map->terminate();
     glfwTerminate();
+}
+
+void glfwError(int error, const char *description) {
+    mbgl::Log::Error(mbgl::Event::OpenGL, "GLFW error (%i): %s", error, description);
+    assert(false);
 }
 
 void GLFWView::initialize(mbgl::Map *map_) {
     View::initialize(map_);
+
+    glfwSetErrorCallback(glfwError);
 
     if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize glfw\n");
@@ -68,22 +73,95 @@ void GLFWView::initialize(mbgl::Map *map_) {
     glfwSetScrollCallback(window, scroll);
     glfwSetKeyCallback(window, key);
 
-
-    const std::string extensions = (char *)glGetString(GL_EXTENSIONS);
+    const std::string extensions = (char *)MBGL_CHECK_ERROR(glGetString(GL_EXTENSIONS));
     {
         using namespace mbgl;
 
+        if (extensions.find("GL_KHR_debug") != std::string::npos) {
+            gl::DebugMessageControl = (gl::PFNGLDEBUGMESSAGECONTROLPROC)glfwGetProcAddress("glDebugMessageControl");
+            gl::DebugMessageInsert = (gl::PFNGLDEBUGMESSAGEINSERTPROC)glfwGetProcAddress("glDebugMessageInsert");
+            gl::DebugMessageCallback = (gl::PFNGLDEBUGMESSAGECALLBACKPROC)glfwGetProcAddress("glDebugMessageCallback");
+            gl::GetDebugMessageLog = (gl::PFNGLGETDEBUGMESSAGELOGPROC)glfwGetProcAddress("glGetDebugMessageLog");
+            gl::GetPointerv = (gl::PFNGLGETPOINTERVPROC)glfwGetProcAddress("glGetPointerv");
+            gl::PushDebugGroup = (gl::PFNGLPUSHDEBUGGROUPPROC)glfwGetProcAddress("glPushDebugGroup");
+            gl::PopDebugGroup = (gl::PFNGLPOPDEBUGGROUPPROC)glfwGetProcAddress("glPopDebugGroup");
+            gl::ObjectLabel = (gl::PFNGLOBJECTLABELPROC)glfwGetProcAddress("glObjectLabel");
+            gl::GetObjectLabel = (gl::PFNGLGETOBJECTLABELPROC)glfwGetProcAddress("glGetObjectLabel");
+            gl::ObjectPtrLabel = (gl::PFNGLOBJECTPTRLABELPROC)glfwGetProcAddress("glObjectPtrLabel");
+            gl::GetObjectPtrLabel = (gl::PFNGLGETOBJECTPTRLABELPROC)glfwGetProcAddress("glGetObjectPtrLabel");
+            assert(gl::DebugMessageControl != nullptr);
+            assert(gl::DebugMessageInsert != nullptr);
+            assert(gl::DebugMessageCallback != nullptr);
+            assert(gl::GetDebugMessageLog != nullptr);
+            assert(gl::GetPointerv != nullptr);
+            assert(gl::PushDebugGroup != nullptr);
+            assert(gl::PopDebugGroup != nullptr);
+            assert(gl::ObjectLabel != nullptr);
+            assert(gl::GetObjectLabel != nullptr);
+            assert(gl::ObjectPtrLabel != nullptr);
+            assert(gl::GetObjectPtrLabel != nullptr);
+        } else {
+            if (extensions.find("GL_ARB_debug_output") != std::string::npos) {
+                gl::DebugMessageControl = (gl::PFNGLDEBUGMESSAGECONTROLPROC)glfwGetProcAddress("glDebugMessageControlARB");
+                gl::DebugMessageInsert = (gl::PFNGLDEBUGMESSAGEINSERTPROC)glfwGetProcAddress("glDebugMessageInsertARB");
+                gl::DebugMessageCallback = (gl::PFNGLDEBUGMESSAGECALLBACKPROC)glfwGetProcAddress("glDebugMessageCallbackARB");
+                gl::GetDebugMessageLog = (gl::PFNGLGETDEBUGMESSAGELOGPROC)glfwGetProcAddress("glGetDebugMessageLogARB");
+                gl::GetPointerv = (gl::PFNGLGETPOINTERVPROC)glfwGetProcAddress("glGetPointerv");
+                assert(gl::DebugMessageControl != nullptr);
+                assert(gl::DebugMessageInsert != nullptr);
+                assert(gl::DebugMessageCallback != nullptr);
+                assert(gl::GetDebugMessageLog != nullptr);
+                assert(gl::GetPointerv != nullptr);
+            }
+
+            if (extensions.find("GL_EXT_debug_marker") != std::string::npos) {
+                gl::InsertEventMarkerEXT = (gl::PFNGLINSERTEVENTMARKEREXTPROC)glfwGetProcAddress("glInsertEventMarkerEXT");
+                gl::PushGroupMarkerEXT = (gl::PFNGLPUSHGROUPMARKEREXTPROC)glfwGetProcAddress("glPushGroupMarkerEXT");
+                gl::PopGroupMarkerEXT = (gl::PFNGLPOPGROUPMARKEREXTPROC)glfwGetProcAddress("glPopGroupMarkerEXT");
+                assert(gl::InsertEventMarkerEXT != nullptr);
+                assert(gl::PushGroupMarkerEXT != nullptr);
+                assert(gl::PopGroupMarkerEXT != nullptr);
+            }
+
+            if (extensions.find("GL_EXT_debug_label") != std::string::npos) {
+                gl::LabelObjectEXT = (gl::PFNGLLABELOBJECTEXTPROC)glfwGetProcAddress("glLabelObjectEXT");
+                gl::GetObjectLabelEXT = (gl::PFNGLGETOBJECTLABELEXTPROC)glfwGetProcAddress("glGetObjectLabelEXT");
+                assert(gl::LabelObjectEXT != nullptr);
+                assert(gl::GetObjectLabelEXT != nullptr);
+            }
+        }
 
         if (extensions.find("GL_ARB_vertex_array_object") != std::string::npos) {
             gl::BindVertexArray = (gl::PFNGLBINDVERTEXARRAYPROC)glfwGetProcAddress("glBindVertexArray");
             gl::DeleteVertexArrays = (gl::PFNGLDELETEVERTEXARRAYSPROC)glfwGetProcAddress("glDeleteVertexArrays");
             gl::GenVertexArrays = (gl::PFNGLGENVERTEXARRAYSPROC)glfwGetProcAddress("glGenVertexArrays");
             gl::IsVertexArray = (gl::PFNGLISVERTEXARRAYPROC)glfwGetProcAddress("glIsVertexArray");
+            assert(gl::BindVertexArray != nullptr);
+            assert(gl::DeleteVertexArrays != nullptr);
+            assert(gl::GenVertexArrays != nullptr);
+            assert(gl::IsVertexArray != nullptr);
         } else if (extensions.find("GL_APPLE_vertex_array_object") != std::string::npos) {
             gl::BindVertexArray = (gl::PFNGLBINDVERTEXARRAYPROC)glfwGetProcAddress("glBindVertexArrayAPPLE");
             gl::DeleteVertexArrays = (gl::PFNGLDELETEVERTEXARRAYSPROC)glfwGetProcAddress("glDeleteVertexArraysAPPLE");
             gl::GenVertexArrays = (gl::PFNGLGENVERTEXARRAYSPROC)glfwGetProcAddress("glGenVertexArraysAPPLE");
             gl::IsVertexArray = (gl::PFNGLISVERTEXARRAYPROC)glfwGetProcAddress("glIsVertexArrayAPPLE");
+            assert(gl::BindVertexArray != nullptr);
+            assert(gl::DeleteVertexArrays != nullptr);
+            assert(gl::GenVertexArrays != nullptr);
+            assert(gl::IsVertexArray != nullptr);
+        }
+
+        if (extensions.find("GL_ARB_get_program_binary") != std::string::npos) {
+            GLint numBinaryFormats;
+            MBGL_CHECK_ERROR(glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &numBinaryFormats));
+            if (numBinaryFormats > 0) {
+                gl::GetProgramBinary = (gl::PFNGLGETPROGRAMBINARYPROC)glfwGetProcAddress("glGetProgramBinary");
+                gl::ProgramBinary = (gl::PFNGLPROGRAMBINARYPROC)glfwGetProcAddress("glProgramBinary");
+                gl::ProgramParameteri = (gl::PFNGLPROGRAMPARAMETERIPROC)glfwGetProcAddress("glProgramParameteri");
+                assert(gl::GetProgramBinary != nullptr);
+                assert(gl::ProgramBinary != nullptr);
+                assert(gl::ProgramParameteri != nullptr);
+            }
         }
     }
 
@@ -210,7 +288,7 @@ int GLFWView::run() {
         glfwWaitEvents();
     }
 
-    map->stop([](void *) {
+    map->stop([]() {
         glfwWaitEvents();
     });
 
@@ -231,12 +309,6 @@ void GLFWView::notify() {
 
 void GLFWView::swap() {
     glfwPostEmptyEvent();
-
-    double lon, lat, zoom;
-    map->getLonLatZoom(lon, lat, zoom);
-    const double bearing = map->getBearing();
-    const std::string title = mbgl::util::sprintf<128>("Mapbox GL – %.2f/%.6f/%.6f/%.1f", zoom, lat, lon, bearing);
-    glfwSetWindowTitle(window, title.c_str());
 }
 
 void GLFWView::notify_map_change(mbgl::MapChange /*change*/, mbgl::timestamp /*delay*/) {
@@ -285,9 +357,9 @@ void show_debug_image(std::string name, const char *data, size_t width, size_t h
     glfwGetFramebufferSize(debug_window, &fb_width, &fb_height);
     float scale = (float)fb_width / (float)width;
 
-    glPixelZoom(scale, -scale);
-    glRasterPos2f(-1.0f, 1.0f);
-    glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
+    MBGL_CHECK_ERROR(glPixelZoom(scale, -scale));
+    MBGL_CHECK_ERROR(glRasterPos2f(-1.0f, 1.0f));
+    MBGL_CHECK_ERROR(glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, data));
     glfwSwapBuffers(debug_window);
 
     glfwMakeContextCurrent(current_window);
@@ -317,13 +389,13 @@ void show_color_debug_image(std::string name, const char *data, size_t logical_w
     float x_scale = (float)fb_width / (float)width;
     float y_scale = (float)fb_height / (float)height;
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    MBGL_CHECK_ERROR(glClear(GL_COLOR_BUFFER_BIT));
+    MBGL_CHECK_ERROR(glEnable(GL_BLEND));
+    MBGL_CHECK_ERROR(glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    glPixelZoom(x_scale, -y_scale);
-    glRasterPos2f(-1.0f, 1.0f);
-    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+    MBGL_CHECK_ERROR(glPixelZoom(x_scale, -y_scale));
+    MBGL_CHECK_ERROR(glRasterPos2f(-1.0f, 1.0f));
+    MBGL_CHECK_ERROR(glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, data));
     glfwSwapBuffers(debug_window);
 
     glfwMakeContextCurrent(current_window);
