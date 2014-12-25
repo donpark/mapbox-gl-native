@@ -53,7 +53,7 @@ void HTTPRequest::handleCacheResponse(std::unique_ptr<Response> &&res) {
         // This entry was stored in the cache. Now determine if we need to revalidate.
         const int64_t now = std::chrono::duration_cast<std::chrono::seconds>(
                                 std::chrono::system_clock::now().time_since_epoch()).count();
-        if (res->expires > now) {
+        if (CACHE_NEVER_EXPIRES || res->expires > now) {
             response = std::move(res);
             notify();
             // Note: after calling notify(), the request object may cease to exist.
