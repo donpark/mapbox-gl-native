@@ -188,8 +188,8 @@ TEST_P(HeadlessTest, render) {
         CachingHTTPFileSource fileSource(platform::defaultCacheDatabase());
         Map map(view, fileSource);
 
+        map.setClasses(classes);
         map.setStyleJSON(style, base_directory);
-        map.setAppliedClasses(classes);
 
         view.resize(width, height, pixelRatio);
         map.resize(width, height, pixelRatio);
@@ -220,7 +220,7 @@ INSTANTIATE_TEST_CASE_P(Headless, HeadlessTest, ::testing::ValuesIn([] {
 
     for (dirent *dp = nullptr; (dp = readdir(dir)) != nullptr;) {
         const std::string name = dp->d_name;
-        if (name != "." && name != ".." && name != "index.html") {
+        if (name != "index.html" && !(name.size() >= 1 && name[0] == '.')) {
             names.push_back(name);
         }
     }

@@ -250,6 +250,8 @@ void Map::run() {
         mode = Mode::None;
         fileSource.clearLoop();
     }
+
+    terminate();
 }
 
 void Map::rerender() {
@@ -258,8 +260,9 @@ void Map::rerender() {
     } else if (mode == Mode::Continuous) {
         // We only send render events if we want to continuously update the map
         // (== async rendering).
-        assert(asyncRender);
-        asyncRender->send();
+        if (asyncRender) {
+            asyncRender->send();
+        }
     }
 }
 
@@ -279,7 +282,9 @@ void Map::swapped() {
 
 void Map::terminate() {
     assert(painter);
+    view.activate();
     painter->terminate();
+    view.deactivate();
 }
 
 #pragma mark - Setup
@@ -306,6 +311,7 @@ void Map::setStyleJSON(std::string newStyleJSON, const std::string &base) {
         style = std::make_shared<Style>();
     }
     style->loadJSON((const uint8_t *)styleJSON.c_str());
+    style->cascadeClasses(classes);
     fileSource.setBase(base);
     glyphStore->setURL(style->glyph_url);
     update();
@@ -492,23 +498,44 @@ bool Map::getDebug() const {
     return debug;
 }
 
-void Map::setAppliedClasses(const std::vector<std::string> &classes) {
-    style->setAppliedClasses(classes);
-    if (style->hasTransitions()) {
-        update();
+void Map::addClass(const std::string& klass) {
+    if (hasClass(klass)) return;
+    classes.push_back(klass);
+    if (style) {
+        style->cascadeClasses(classes);
+        if (style->hasTransitions()) {
+            update();
+        }
     }
 }
 
-
-void Map::toggleClass(const std::string &name) {
-    style->toggleClass(name);
-    if (style->hasTransitions()) {
-        update();
+void Map::removeClass(const std::string& klass) {
+    if (!hasClass(klass)) return;
+    classes.erase(std::remove(classes.begin(), classes.end(), klass), classes.end());
+    if (style) {
+        style->cascadeClasses(classes);
+        if (style->hasTransitions()) {
+            update();
+        }
     }
 }
 
-const std::vector<std::string> &Map::getAppliedClasses() const {
-   return style->getAppliedClasses();
+void Map::setClasses(const std::vector<std::string>& classes_) {
+    classes = classes_;
+    if (style) {
+        style->cascadeClasses(classes);
+        if (style->hasTransitions()) {
+            update();
+        }
+    }
+}
+
+bool Map::hasClass(const std::string& klass) const {
+    return std::find(classes.begin(), classes.end(), klass) != classes.end();
+}
+
+std::vector<std::string> Map::getClasses() const {
+   return classes;
 }
 
 void Map::setDefaultTransitionDuration(uint64_t milliseconds) {

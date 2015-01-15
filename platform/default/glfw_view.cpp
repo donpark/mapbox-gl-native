@@ -58,13 +58,11 @@ void GLFWView::initialize(mbgl::Map *map_) {
 
     glfwSetWindowUserPointer(window, this);
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
     int width, height;
     glfwGetWindowSize(window, &width, &height);
-    int fbWidth, fbHeight;
-    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-
-    resize(window, 0, 0);
+    resize(window, width, height);
 
     glfwSetCursorPosCallback(window, mouseMove);
     glfwSetMouseButtonCallback(window, mouseClick);
@@ -186,7 +184,11 @@ void GLFWView::key(GLFWwindow *window, int key, int /*scancode*/, int action, in
         case GLFW_KEY_R:
             if (!mods) {
                 view->map->setDefaultTransitionDuration(300);
-                view->map->toggleClass("night");
+                if (view->map->hasClass("night")) {
+                    view->map->removeClass("night");
+                } else {
+                    view->map->addClass("night");
+                }
             }
             break;
         case GLFW_KEY_N:
@@ -277,12 +279,6 @@ int GLFWView::run() {
     map->start();
 
     while (!glfwWindowShouldClose(window)) {
-        if (map->needsSwap()) {
-            glfwSwapBuffers(window);
-            map->swapped();
-            fps();
-        }
-
         glfwWaitEvents();
     }
 
@@ -306,7 +302,9 @@ void GLFWView::notify() {
 }
 
 void GLFWView::swap() {
-    glfwPostEmptyEvent();
+    glfwSwapBuffers(window);
+    map->swapped();
+    fps();
 }
 
 void GLFWView::notifyMapChange(mbgl::MapChange /*change*/, mbgl::timestamp /*delay*/) {
@@ -387,9 +385,10 @@ void showColorDebugImage(std::string name, const char *data, size_t logicalWidth
     float xScale = static_cast<float>(fbWidth) / static_cast<float>(width);
     float yScale = static_cast<float>(fbHeight) / static_cast<float>(height);
 
+    MBGL_CHECK_ERROR(glClearColor(0.8, 0.8, 0.8, 1));
     MBGL_CHECK_ERROR(glClear(GL_COLOR_BUFFER_BIT));
     MBGL_CHECK_ERROR(glEnable(GL_BLEND));
-    MBGL_CHECK_ERROR(glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    MBGL_CHECK_ERROR(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     MBGL_CHECK_ERROR(glPixelZoom(xScale, -yScale));
     MBGL_CHECK_ERROR(glRasterPos2f(-1.0f, 1.0f));
