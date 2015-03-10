@@ -56,11 +56,11 @@ const static bool uvVersionCheck = []() {
 #include <zlib.h>
 // Check zlib library version.
 const static bool zlibVersionCheck = []() {
-    const char *const version = zlibVersion();
-    if (version[0] != ZLIB_VERSION[0]) {
-        throw std::runtime_error(mbgl::util::sprintf<96>(
-            "zlib version mismatch: headers report %s, but library reports %s", ZLIB_VERSION, version));
-    }
+//    const char *const version = zlibVersion();
+//    if (version[0] != ZLIB_VERSION[0]) {
+//        throw std::runtime_error(mbgl::util::sprintf<96>(
+//            "zlib version mismatch: headers report %s, but library reports %s", ZLIB_VERSION, version));
+//    }
 
     return true;
 }();
@@ -69,16 +69,16 @@ const static bool zlibVersionCheck = []() {
 #include <sqlite3.h>
 // Check sqlite3 library version.
 const static bool sqliteVersionCheck = []() {
-    if (sqlite3_libversion_number() != SQLITE_VERSION_NUMBER) {
-        throw std::runtime_error(mbgl::util::sprintf<96>(
-            "sqlite3 libversion mismatch: headers report %d, but library reports %d",
-            SQLITE_VERSION_NUMBER, sqlite3_libversion_number()));
-    }
-    if (strcmp(sqlite3_sourceid(), SQLITE_SOURCE_ID) != 0) {
-        throw std::runtime_error(mbgl::util::sprintf<256>(
-            "sqlite3 sourceid mismatch: headers report \"%s\", but library reports \"%s\"",
-            SQLITE_SOURCE_ID, sqlite3_sourceid()));
-    }
+//    if (sqlite3_libversion_number() != SQLITE_VERSION_NUMBER) {
+//        throw std::runtime_error(mbgl::util::sprintf<96>(
+//            "sqlite3 libversion mismatch: headers report %d, but library reports %d",
+//            SQLITE_VERSION_NUMBER, sqlite3_libversion_number()));
+//    }
+//    if (strcmp(sqlite3_sourceid(), SQLITE_SOURCE_ID) != 0) {
+//        throw std::runtime_error(mbgl::util::sprintf<256>(
+//            "sqlite3 sourceid mismatch: headers report \"%s\", but library reports \"%s\"",
+//            SQLITE_SOURCE_ID, sqlite3_sourceid()));
+//    }
 
     return true;
 }();
